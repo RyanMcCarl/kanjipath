@@ -1,0 +1,36 @@
+in kradfile but not in wiki:
+# kanji
+岡
+斉
+久
+五
+免
+無
+巨
+品
+冊
+屯
+巴
+世
+乃
+勿
+滴
+奄
+也
+九
+元
+并
+井
+
+# idiot used wrong unicode point, not kangxi radical
+｜
+⺾
+ノ
+⺅
+辶
+
+# only in uncommon kanji?
+ユ
+ヨ
+
+
