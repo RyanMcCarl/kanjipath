@@ -18,7 +18,6 @@
   (into [:tr [:td group]] 
         (map (fn [grapheme]
                [:td 
-                ;{:className "babelstone-han"}
                 (make-grapheme-name (:grapheme/name grapheme))
                 [:sub (string/join (->> grapheme
                                         :grapheme/origins
@@ -42,6 +41,14 @@
                        table
                        (repeat origin-kw-to-char)))]])))))
 
+(defn test-ds []
+  (let [dsdb-sub (r/subscribe [:dsdb])]
+    (fn []
+      (if-let [conn @dsdb-sub]
+        (into [:div]
+              (map (fn [l] [:div (str l)])
+                   (map seq conn)))))))
+
 ;; home
 
 (defn home-panel []
@@ -49,7 +56,8 @@
     (fn []
       [:div (str "Hello from " @name ". This is the Home Page.")
        [:div [:a {:href "#/about"} "go to About Page"]]
-       [tabulate-graphemes]])))
+       [tabulate-graphemes]
+       [test-ds]])))
 
 
 ;; about
