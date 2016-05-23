@@ -8,11 +8,17 @@
                  [compojure "1.5.0"]
                  [ring "1.4.0"]
                  [ring/ring-defaults "0.2.0"]
+                 [cljs-ajax "0.5.4"] ;?
+                 [org.clojure/core.async "0.2.374"]
+                 ;[com.datomic/datomic-free "0.9.5359"]
+                 [datascript "0.15.0"]
+                 [criterium "0.4.4"]
+                 [ring-middleware-format "0.7.0"]
                  ]
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj"]
+  :source-paths ["src/clj" "src/cljc"]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-garden "0.2.6"]]
@@ -35,7 +41,7 @@
     :cljsbuild
     {:builds
      [{:id           "dev"
-       :source-paths ["src/cljs"]
+       :source-paths ["src/cljs" "src/cljc"]
        :figwheel     {:on-jsload "krad.core/mount-root"}
        :compiler     {:main                 krad.core
                       :output-to            "resources/public/js/compiled/app.js"
