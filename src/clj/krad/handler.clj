@@ -23,17 +23,27 @@
          (str "Title: " title ", Author: " author)))
   
   #_(route/resources "/")  ;; either THIS (1 of 2: search for __2_of_2__)
+  (route/not-found "Not found")
   )
 
 ; changes below this won't be caught by wrap-reload! Only changes to the routes
 ; above.
+(defn wrap-dir-index [handler]
+  (fn [req]
+    (handler
+     (update-in req
+                [:uri]
+                #(if (= "/" %) "/index.html" %)))))
+
 (def handler (-> #'routes
                  (wrap-restful-format ,,, )
                  (wrap-resource "public") ;; OR this (2 of 2) __2_of_2__
                  (wrap-defaults site-defaults)
+                 wrap-dir-index
                  wrap-reload))
 
 (defn -main []
+  (println "Starting server…")
   (http-kit/run-server handler {:port 9090}))
 
 

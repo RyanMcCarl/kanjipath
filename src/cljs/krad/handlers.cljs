@@ -11,7 +11,7 @@
 (r/register-handler
  :initialize-db
  (fn  [_ _]
-   (xhr/send "/abc" 
+   (xhr/send "/abc"
              #(r/dispatch [:abc-received
                            {:status (-> % .-target .getStatus)
                             :content-type (-> % .-target (.getResponseHeader "Content-Type"))
@@ -35,7 +35,7 @@
   :abc-to-dsdb
   (fn [db [_ {:keys [table] :as data}]]
     (let [conn (:dsdb db)
-          txlog (d/transact! conn 
+          txlog (d/transact! conn
                              (mapv (fn [s] {:entry/name s})
                                    (->> table
                                         flatten

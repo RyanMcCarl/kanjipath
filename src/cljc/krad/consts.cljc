@@ -1,4 +1,4 @@
-(ns krad.db)
+(ns krad.consts)
 
 (def datascript-schema {:grapheme/name {:db/unique :db.unique/identity
                                      :db/cardinality :db.cardinality/one}
