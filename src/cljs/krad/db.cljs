@@ -1,13 +1,9 @@
 (ns krad.db
-  (:require [datascript.core :as d]))
-
-(def datascript-schema {:entry/name {:db/unique :db.unique/identity
-                                     :db/cardinality :db.cardinality/one}
-                        :entry/deps {:db/valueType :db.type/ref
-                                     :db/cardinality :db.cardinality/many}})
+  (:require [datascript.core :as d]
+            [krad.dsdb :as dsdb]))
 
 (def default-db
   {:name "re-frame"
    :abc-graphemes nil
-   :dsdb (d/create-conn datascript-schema)
+   :dsdb (d/create-conn dsdb/datascript-schema)
    :txlog nil})

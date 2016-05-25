@@ -2,7 +2,8 @@
   (:require [datascript.core :as d]
             [clojure.string :as string]
             [clojure.java.io :as io]
-            [clojure.set :as clj-set]))
+            [clojure.set :as clj-set]
+            [krad.dsdb :as dsdb]))
 
 (def abc-md "data/abc.md")
 (def abc (->> abc-md
@@ -16,12 +17,49 @@
                                               (range (count groups)))))
 (def table (->> abc
                 rest
-                (apply mapv list) ; transpose
-                (mapv #(remove (partial = "_") %)) ; remove _
-                (mapv (fn [v] (mapv #(hash-map :grapheme/name %
-                                               :grapheme/origins []) v)))
+                (apply mapv list ,,,) ; transpose
+                (mapv #(remove (partial = "_") %) ,,,) ; remove _
+                (mapv (fn [group v] 
+                        (mapv (fn [value idx] 
+                                {:grapheme/name value
+                                 :grapheme/origins [] ; filled in later
+                                 :grapheme/abc-group group ; e.g., "TO" or "Z"
+                                 :grapheme/abc-number (inc idx)
+                                 })
+                              v
+                              (range (count v))))
+                      groups
+                      ,,,)
                 ; above: vec of vec of str to vec of vec of maps w/ str as val
                 ))
+
+(comment
+  (->> table
+       flatten
+       shuffle
+       (group-by :grapheme/abc-group)
+       (map (fn [[group-name graphemes]]
+              [group-name (sort-by :grapheme/abc-number graphemes)]))
+       (sort-by #(-> % first group-to-idx))
+       (mapv second)
+       (map vec)
+       (= table)
+       )
+  ;above: Execution time upper quantile : 786.375006 µs (97.5%)
+
+  ; alternative
+  (->> table
+       flatten
+       shuffle
+       (sort-by (comp group-to-idx :grapheme/abc-group))
+       (partition-by :grapheme/abc-group)
+       (mapv #(into [] (sort-by :grapheme/abc-number %)))
+       (= table)
+       )
+  ;above: Execution time upper quantile : 1.625902 ms (97.5%)
+  ; or, ~2x slower.
+
+  )
 
 
 (defn inclusive-range
@@ -64,6 +102,9 @@
           table
           origins))
 
+(d/transact! dsdb/conn (flatten table-origin))
+
+;; for printing table Clojure-side, to files
 (defn print-grapheme [{name :grapheme/name origins :grapheme/origins
                        :as grapheme}]
   (str name "/" (string/join (map origin-kw-to-char origins))))
