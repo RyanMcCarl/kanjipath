@@ -1,5 +1,6 @@
 (ns krad.handler
-  (:require [compojure.core :refer [GET defroutes]]
+  (:require [org.httpkit.server :as http-kit]
+            [compojure.core :refer [GET defroutes]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.resource :refer [wrap-resource]]
             [compojure.route :as route]
@@ -31,4 +32,8 @@
                  (wrap-resource "public") ;; OR this (2 of 2) __2_of_2__
                  (wrap-defaults site-defaults)
                  wrap-reload))
+
+(defn -main []
+  (http-kit/run-server handler {:port 9090}))
+
 

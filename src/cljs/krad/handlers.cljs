@@ -1,6 +1,6 @@
 (ns krad.handlers
     (:require [re-frame.core :as r]
-              [krad.db :as db]
+              [krad.db :as kdb]
               [goog.net.XhrIo :as xhr]
               [cognitect.transit :as transit]
               [datascript.core :as d]))
@@ -19,7 +19,7 @@
              "GET"
              nil
              #js {"Accept" "application/transit+json, application/json, */*"})
-   (-> db/default-db)))
+   (-> kdb/default-db)))
 
 (r/register-handler
   :abc-received

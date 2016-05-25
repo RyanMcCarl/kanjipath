@@ -2,8 +2,7 @@
   (:require [datascript.core :as d]
             [clojure.string :as string]
             [clojure.java.io :as io]
-            [clojure.set :as clj-set]
-            [krad.dsdb :as dsdb]))
+            [clojure.set :as clj-set]))
 
 (def abc-md "data/abc.md")
 (def abc (->> abc-md
@@ -101,8 +100,6 @@
                     group-idx-pairs))
           table
           origins))
-
-(d/transact! dsdb/conn (flatten table-origin))
 
 ;; for printing table Clojure-side, to files
 (defn print-grapheme [{name :grapheme/name origins :grapheme/origins

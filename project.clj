@@ -14,11 +14,15 @@
                  [datascript "0.15.0"]
                  [criterium "0.4.4"]
                  [ring-middleware-format "0.7.0"]
+                 [mount "0.1.10"]
+                 [http-kit "2.2.0-alpha1"]
                  ]
 
   :min-lein-version "2.5.3"
 
   :source-paths ["src/clj" "src/cljc"]
+
+  :main krad.handler
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-garden "0.2.6"]]
@@ -26,8 +30,7 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "resources/public/css"]
 
-  :figwheel {:css-dirs ["resources/public/css"]
-             :ring-handler krad.handler/handler}
+  :figwheel {:css-dirs ["resources/public/css"]}
 
   :garden {:builds [{:id           "screen"
                      :source-paths ["src/clj"]
@@ -55,7 +58,7 @@
    {:cljsbuild
     {:builds
      [{:id           "min"
-       :source-paths ["src/cljs"]
+       :source-paths ["src/cljs" "src/cljc"]
        :compiler     {:main            krad.core
                       :output-to       "resources/public/js/compiled/app.js"
                       :optimizations   :advanced
