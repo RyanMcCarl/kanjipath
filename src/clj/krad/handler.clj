@@ -1,5 +1,7 @@
 (ns krad.handler
-  (:require [org.httpkit.server :as http-kit]
+  (:require [mount.core :refer [defstate]]
+            [krad.config :refer [config]]
+            [org.httpkit.server :as http-kit]
             [compojure.core :refer [GET defroutes]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.resource :refer [wrap-resource]]
@@ -21,7 +23,7 @@
        (let [title (get (:params req) :title)
              author (get (:params req) :author)]
          (str "Title: " title ", Author: " author)))
-  
+
   #_(route/resources "/")  ;; either THIS (1 of 2: search for __2_of_2__)
   (route/not-found "Not found")
   )
@@ -42,8 +44,20 @@
                  wrap-dir-index
                  wrap-reload))
 
-(defn -main []
-  (println "Starting server…")
-  (http-kit/run-server handler {:port 9090}))
+(defonce http-kit-shutdown-fn (atom nil))
+
+(defn start-webserver [{:keys [www]}]
+  (println "Starting server on port" (:port www))
+  (reset! http-kit-shutdown-fn
+          (http-kit/run-server handler {:port (:port www)})))
+
+(defn stop-webserver []
+  (when-not (nil? @http-kit-shutdown-fn)
+    (@http-kit-shutdown-fn :timeout 500)
+    (reset! http-kit-shutdown-fn nil)))
+
+(defstate webserver
+  :start (start-webserver config)
+  :stop (stop-webserver))
 
 

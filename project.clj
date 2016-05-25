@@ -16,13 +16,14 @@
                  [ring-middleware-format "0.7.0"]
                  [mount "0.1.10"]
                  [http-kit "2.2.0-alpha1"]
+                 [org.clojure/tools.nrepl "0.2.11"]
                  ]
 
   :min-lein-version "2.5.3"
 
   :source-paths ["src/clj" "src/cljc"]
 
-  :main krad.handler
+  :main krad.core
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-garden "0.2.6"]]

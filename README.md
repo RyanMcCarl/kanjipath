@@ -34,6 +34,11 @@ lein run
 
 Wait a bit, then browse to [http://localhost:9090](http://localhost:9090).
 
+### Connect a live nrepl session
+```
+$ lein repl :connect 9091
+```
+
 ## Production Build
 
 ```
