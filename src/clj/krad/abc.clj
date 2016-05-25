@@ -1,5 +1,6 @@
 (ns krad.abc
-  (:require [datascript.core :as d]
+  (:require [mount.core :refer [defstate] :as mount]
+            [datascript.core :as d]
             [clojure.string :as string]
             [clojure.java.io :as io]
             [clojure.set :as clj-set]))
@@ -18,8 +19,8 @@
                 rest
                 (apply mapv list ,,,) ; transpose
                 (mapv #(remove (partial = "_") %) ,,,) ; remove _
-                (mapv (fn [group v] 
-                        (mapv (fn [value idx] 
+                (mapv (fn [group v]
+                        (mapv (fn [value idx]
                                 {:grapheme/name value
                                  :grapheme/origins [] ; filled in later
                                  :grapheme/abc-group group ; e.g., "TO" or "Z"
@@ -129,4 +130,12 @@
     ; 13 out of 484 use IDCs.
     ))
 
+; Let's make this into a mount state so we can reload it by recompiling this
+; namespace (by e.g., saving this file). To do so from the REPL (which would be
+; way better), we'd have to put the data loaders into functions. TODO FIXME !
+(println "Read abc data")
+(defstate abc-state
+  :start {:origin-kw-to-char origin-kw-to-char
+          :groups groups
+          :table table-origin})
 

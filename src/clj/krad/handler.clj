@@ -8,15 +8,13 @@
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.middleware.format :refer [wrap-restful-format]]
-            [krad.abc :as abc]))
+            [krad.abc :refer [abc-state]]))
 
 (defroutes routes
   (GET "/hi" [] (str "hi "))
   (GET "/test" [] {:body {:foo "bar" :baz [12 -412.12]}}) ; wrap-restful-format needs the body in a map
 
-  (GET "/abc" [] {:body {:origin-kw-to-char abc/origin-kw-to-char
-                         :groups abc/groups
-                         :table abc/table-origin}})
+  (GET "/abc" [] {:body abc-state})
   ; try going to http://localhost:3449/posts?title=Life&author=Me
   ; without wrap-defaults, you won't see "Life" or "Me".
   (GET "/posts" req
