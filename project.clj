@@ -17,6 +17,7 @@
                  [mount "0.1.10"]
                  [http-kit "2.2.0-alpha1"]
                  [org.clojure/tools.nrepl "0.2.11"]
+                 [com.taoensso/sente "1.8.1"]
                  ]
 
   :min-lein-version "2.5.3"

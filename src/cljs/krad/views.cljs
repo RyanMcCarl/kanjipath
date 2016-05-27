@@ -1,7 +1,11 @@
 (ns krad.views
-    (:require [re-frame.core :as r]
-              [clojure.string :as string]
-              [datascript.core :as d]))
+  (:require-macros
+    [cljs.core.async.macros :as asyncm :refer (go go-loop)])
+  (:require [re-frame.core :as r]
+            [clojure.string :as string]
+            [datascript.core :as d]
+            [cljs.core.async :as async :refer (<! >! put! chan)]
+            [taoensso.sente  :as sente :refer (cb-success?)]))
 
 ;; graphemes
 (defn kw-vec-to-str [v]
@@ -63,7 +67,7 @@
             ]
         (into [:div.graphemes-abc]
               (mapcat (fn [group-name graphemes]
-                        (into [[:div (str "(" group-name ")")]]
+                        (into [[:div {:key group-name} (str "(" group-name ")")]]
                               (map (fn [{name :grapheme/name :as g}]
                                      [:div {:key name} (make-grapheme-name name) "　"])
                                    graphemes)))
@@ -113,3 +117,17 @@
   (let [active-panel (r/subscribe [:active-panel])]
     (fn []
       [show-panel @active-panel])))
+
+
+;; sente
+
+(let [{:keys [chsk ch-recv send-fn state]}
+      (sente/make-channel-socket! "/chsk" ; Note the same path as before
+       {:type :auto ; e/o #{:auto :ajax :ws}
+       })]
+  (def chsk       chsk)
+  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send! send-fn) ; ChannelSocket's send API fn
+  (def chsk-state state)   ; Watchable, read-only atom
+  )
+
