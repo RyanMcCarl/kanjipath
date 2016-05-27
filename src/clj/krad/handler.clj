@@ -2,15 +2,16 @@
   (:require [mount.core :refer [defstate]]
             [krad.config :refer [config]]
             [org.httpkit.server :as http-kit]
-            [compojure.core :refer [GET POST defroutes]]
+            [compojure.core :refer [GET POST defroutes routes]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.resource :refer [wrap-resource]]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults api-defaults]]
             [ring.middleware.format :refer [wrap-restful-format]]
             [krad.abc :refer [abc-state]]
             [krad.dsdb :as dsdb :refer [dsdb-state]]
             [datascript.core :as d]
+            [clojure.core.async :as a]
             [taoensso.sente :as sente]
             [taoensso.sente.server-adapters.http-kit :refer (sente-web-server-adapter)]))
 
@@ -27,7 +28,7 @@
 
 ;; continue
 
-(defroutes routes
+(defroutes my-routes
   (GET "/hi" [] (str "hi "))
   (GET "/test" [] {:body {:foo "bar" :baz [12 -412.12]}}) ; wrap-restful-format needs the body in a map
 
@@ -40,14 +41,14 @@
              author (get (:params req) :author)]
          (str "Title: " title ", Author: " author)))
 
-  (GET  "/chsk" req (ring-ajax-get-or-ws-handshake req))
-  (POST "/chsk" req (ring-ajax-post                req))
-
   ; (route/resources "/")  ;; either THIS (1 of 2: search for __2_of_2__)
-  (route/not-found "Not found")
-  )
+  (route/not-found "Not found"))
 
-; changes below this won't be caught by wrap-reload! Only changes to the routes
+(defroutes sente-routes
+  (GET  "/chsk" req (ring-ajax-get-or-ws-handshake req))
+  (POST "/chsk" req (ring-ajax-post                req)))
+
+; changes below this won't be caught by wrap-reload! Only changes to the my-routes
 ; above.
 (defn wrap-dir-index [handler]
   (fn [req]
@@ -56,14 +57,18 @@
                 [:uri]
                 #(if (= "/" %) "/index.html" %)))))
 
-(def handler (-> #'routes
-                 (wrap-restful-format ,,, )
-                 (wrap-resource "public") ;; OR this (2 of 2) __2_of_2__
-                 (wrap-defaults site-defaults)
-                 wrap-dir-index
-                 ring.middleware.keyword-params/wrap-keyword-params
-                 ring.middleware.params/wrap-params
-                 wrap-reload))
+(def handler (routes
+               (-> #'sente-routes
+                   (wrap-defaults api-defaults)
+                   ring.middleware.keyword-params/wrap-keyword-params
+                   ring.middleware.params/wrap-params
+                   )
+               (-> #'my-routes
+                   (wrap-restful-format ,,, )
+                   (wrap-resource "public") ;; OR this (2 of 2) __2_of_2__
+                   (wrap-defaults site-defaults)
+                   wrap-dir-index
+                   wrap-reload)))
 
 (defonce http-kit-shutdown-fn (atom nil))
 

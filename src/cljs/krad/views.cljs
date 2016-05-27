@@ -20,9 +20,9 @@
     s))
 
 (defn tabulate-grapheme-row [group graphemes origin-kw-to-char]
-  (into [:tr [:td group]] 
+  (into [:tr [:td group]]
         (map (fn [grapheme]
-               [:td 
+               [:td
                 (make-grapheme-name (:grapheme/name grapheme))
                 [:sub (string/join (->> grapheme
                                         :grapheme/origins
