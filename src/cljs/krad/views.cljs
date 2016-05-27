@@ -69,7 +69,7 @@
               (mapcat (fn [group-name graphemes]
                         (into [[:div {:key group-name} (str "(" group-name ")")]]
                               (map (fn [{name :grapheme/name :as g}]
-                                     [:div {:key name} (make-grapheme-name name) "　"])
+                                     [:div (make-grapheme-name name) "　"])
                                    graphemes)))
                       groups
                       graphemes-table))))))
