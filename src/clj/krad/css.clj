@@ -11,4 +11,6 @@
   [:table :thead :td {:border "1px solid rgb(240,240,240)"}]
   ;[:td.origin-jouyou::after {:content "J"}]
   ;[(s/td ".origin-jouyou" s/after) {:content "\"J\""}]
+  [:div.graphemes-abc {:display "flex"
+                       :flex-wrap "wrap"}]
 )

@@ -1,6 +1,7 @@
 (ns krad.views
     (:require [re-frame.core :as r]
-              [clojure.string :as string]))
+              [clojure.string :as string]
+              [datascript.core :as d]))
 
 ;; graphemes
 (defn kw-vec-to-str [v]
@@ -41,6 +42,34 @@
                        table
                        (repeat origin-kw-to-char)))]])))))
 
+(defn tabulate-graphemes-compact []
+  (let [dsdb-sub (r/subscribe [:dsdb])]
+    (fn []
+      (let [dsdb @dsdb-sub
+            groups (d/q '[:find ?v .
+                          :where [_ :abc/groups ?v]]
+                        dsdb)
+            group-to-idx (apply hash-map (interleave groups
+                                                     (range (count groups))))
+            unsorted-graphemes (d/q '[:find [(pull ?e [*]) ...]
+                                      :where
+                                      [?e :grapheme/name _]]
+                                    dsdb)
+            graphemes-list (sort-by (juxt (comp group-to-idx :grapheme/abc-group)
+                                          :grapheme/abc-number)
+                                    unsorted-graphemes)
+            graphemes-table (mapv #(into [(first %)] %)
+                                  (partition-by :grapheme/abc-group graphemes-list))
+            ]
+        (into [:div.graphemes-abc]
+              (mapcat (fn [group-name graphemes]
+                        (into [[:div (str "(" group-name ")")]]
+                              (map (fn [{name :grapheme/name :as g}]
+                                     [:div {:key name} (make-grapheme-name name) "　"])
+                                   graphemes)))
+                      groups
+                      graphemes-table))))))
+
 (defn test-ds []
   (let [dsdb-sub (r/subscribe [:dsdb])]
     (fn []
@@ -57,7 +86,8 @@
       [:div (str "Hello from " @name ". This is the Home Page.")
        [:div [:a {:href "#/about"} "go to About Page"]]
        [tabulate-graphemes]
-       [test-ds]])))
+       [tabulate-graphemes-compact]
+       #_[test-ds]])))
 
 
 ;; about

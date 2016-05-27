@@ -5,5 +5,4 @@
 (def default-db
   {:name "re-frame"
    :abc-graphemes nil
-   :dsdb (d/create-conn consts/datascript-schema)
-   :txlog nil})
+   :dsdb (d/empty-db consts/datascript-schema)})

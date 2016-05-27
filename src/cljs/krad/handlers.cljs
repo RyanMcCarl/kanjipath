@@ -1,6 +1,6 @@
 (ns krad.handlers
     (:require [re-frame.core :as r]
-              [krad.db :as kdb]
+              [krad.db :as db]
               [goog.net.XhrIo :as xhr]
               [cognitect.transit :as transit]
               [datascript.core :as d]))
@@ -11,7 +11,12 @@
 (r/register-handler
  :initialize-db
  (fn  [_ _]
-   (xhr/send "/abc"
+   (xhr/send "/ds/abc"
+             #(r/dispatch [:abc-dsdb-received
+                           {:status (-> % .-target .getStatus)
+                            :content-type (-> % .-target (.getResponseHeader "Content-Type"))
+                            :data (-> % .-target .getResponseText)}]))
+   #_(xhr/send "/abc"
              #(r/dispatch [:abc-received
                            {:status (-> % .-target .getStatus)
                             :content-type (-> % .-target (.getResponseHeader "Content-Type"))
@@ -19,7 +24,16 @@
              "GET"
              nil
              #js {"Accept" "application/transit+json, application/json, */*"})
-   (-> kdb/default-db)))
+   (-> db/default-db)))
+
+(r/register-handler
+  :abc-dsdb-received
+  (fn [db [_ {:keys [status content-type data]}]]
+    (if (= status 200)
+      (let [full-dsdb (cljs.reader/read-string data)]
+        (assoc db :dsdb full-dsdb))
+      (do (js/alert "Failed to load Kanji ABC graphemes.")
+          db))))
 
 (r/register-handler
   :abc-received
