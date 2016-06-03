@@ -47,18 +47,18 @@
                        (repeat origin-kw-to-char)))]])))))
 
 (defn tabulate-graphemes-compact []
-  (let [dsdb-sub (r/subscribe [:dsdb])]
+  (let [conn-sub (r/subscribe [:conn])]
     (fn []
-      (let [dsdb @dsdb-sub
+      (let [[conn] @conn-sub
             groups (d/q '[:find ?v .
                           :where [_ :abc/groups ?v]]
-                        dsdb)
+                        @conn)
             group-to-idx (apply hash-map (interleave groups
                                                      (range (count groups))))
             unsorted-graphemes (d/q '[:find [(pull ?e [*]) ...]
                                       :where
                                       [?e :grapheme/name _]]
-                                    dsdb)
+                                    @conn)
             graphemes-list (sort-by (juxt (comp group-to-idx :grapheme/abc-group)
                                           :grapheme/abc-number)
                                     unsorted-graphemes)
@@ -89,7 +89,7 @@
     (fn []
       [:div (str "Hello from " @name ". This is the Home Page.")
        [:div [:a {:href "#/about"} "go to About Page"]]
-       [tabulate-graphemes]
+       #_[tabulate-graphemes]
        [tabulate-graphemes-compact]
        #_[test-ds]])))
 

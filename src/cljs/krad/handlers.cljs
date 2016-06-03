@@ -16,46 +16,26 @@
                            {:status (-> % .-target .getStatus)
                             :content-type (-> % .-target (.getResponseHeader "Content-Type"))
                             :data (-> % .-target .getResponseText)}]))
-   #_(xhr/send "/abc"
-             #(r/dispatch [:abc-received
-                           {:status (-> % .-target .getStatus)
-                            :content-type (-> % .-target (.getResponseHeader "Content-Type"))
-                            :data (-> % .-target .getResponseText)}])
-             "GET"
-             nil
-             #js {"Accept" "application/transit+json, application/json, */*"})
-   (-> db/default-db)))
+   (let [db db/default-db]
+     (d/listen! (:conn db) #(r/dispatch [:conn-transacted]))
+     db)))
+
+(r/register-handler
+  :conn-transacted
+  (fn [db _]
+    (update db :conn-heartbeat inc)))
 
 (r/register-handler
   :abc-dsdb-received
   (fn [db [_ {:keys [status content-type data]}]]
     (if (= status 200)
       (let [full-dsdb (cljs.reader/read-string data)]
-        (assoc db :dsdb full-dsdb))
+        (d/reset-conn! (:conn db) full-dsdb)
+        (update db :conn-heartbeat inc))
       (do (js/alert "Failed to load Kanji ABC graphemes.")
           db))))
 
-(r/register-handler
-  :abc-received
-  (fn [db [_ {:keys [status content-type data]}]]
-    (if (= status 200)
-      (let [obj (from-transit data)]
-        (r/dispatch [:abc-to-dsdb obj])
-        (assoc db :abc-graphemes obj))
-      (do (js/alert "Failed to load Kanji ABC graphemes.")
-          db))))
 
-(r/register-handler
-  :abc-to-dsdb
-  (fn [db [_ {:keys [table] :as data}]]
-    (let [conn (:dsdb db)
-          txlog (d/transact! conn
-                             (mapv (fn [s] {:entry/name s})
-                                   (->> table
-                                        flatten
-                                        (map :grapheme/name)
-                                        distinct)))]
-      (assoc db :txlog txlog))))
 
 (r/register-handler
  :set-active-panel

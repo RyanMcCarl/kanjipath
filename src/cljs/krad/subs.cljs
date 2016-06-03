@@ -5,5 +5,7 @@
 (r/register-sub :name (fn [db] (reaction (:name @db))))
 (r/register-sub :active-panel (fn [db _] (reaction (:active-panel @db))))
 (r/register-sub :abc-graphemes (fn [db _] (reaction (:abc-graphemes @db))))
-(r/register-sub :dsdb (fn [db _] (reaction (:dsdb @db))))
+(r/register-sub :conn (fn [db _]
+                        (let [heartbeat-sub (reaction (:conn-heartbeat @db))]
+                          (reaction [(:conn @db) @heartbeat-sub]))))
 

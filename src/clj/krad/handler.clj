@@ -26,6 +26,9 @@
   (def connected-uids                connected-uids) ; Watchable, read-only atom
   )
 
+(a/go-loop []
+           (println "Server received: " (a/<! ch-chsk))
+           (recur))
 ;; continue
 
 (defroutes my-routes
