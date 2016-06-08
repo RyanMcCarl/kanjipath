@@ -31,3 +31,6 @@
              ; a user can have only one nickname and that name uniquely
              ; identifies them
              :user/name (merge unique one)})
+; A grapheme has a name, and requirement sets. A requirement set has graphemes
+; and users who downvoted it. A grapheme nickname has a name, a grapheme, and
+; users who subscribe to it. A user has a name.
