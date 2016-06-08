@@ -27,6 +27,11 @@ lein figwheel dev
 
 Figwheel will automatically push cljs changes to the browser.
 
+### Start Horizon
+```
+$ hz serve --dev --serve-static resources/public
+```
+
 ### Start the webserver
 ```
 lein run
