@@ -36,7 +36,7 @@
 ; EAVTs: from ClojureScript REPL:
 ; $ lein figwheel dev
 ; then
-; => (require '[re-frame.core :as r]) (r/dispatch [:request-dsdb])
+; => (do (require '[re-frame.core :as r]) (r/dispatch [:request-dsdb]))
 (r/register-handler
   :request-dsdb
   (fn [db _]
@@ -47,15 +47,20 @@
                              :data (-> % .-target .getResponseText)}]))
     db))
 
+(extend-type Keyword
+  IEncodeJS
+  (-clj->js [s] (subs (str s) 1)))
 (defn datom-to-obj [v]
   (apply hash-map (interleave ["e" "a" "v" "t"] (take 4 v))))
+(defn datascript-to-js-array [db]
+  (clj->js (map datom-to-obj db)))
 
 (r/register-handler
   :abc-dsdb-received
   (fn [db [_ {:keys [status content-type data]}]]
     (if (= status 200)
       (let [full-dsdb (cljs.reader/read-string data)
-            datoms (clj->js (map datom-to-obj (map #(take 4 %) full-dsdb)))]
+            datoms (datascript-to-js-array full-dsdb)]
         (-> (:hz-coll db)
             (.store datoms)
             (.subscribe #(println "Success writing to RethinkDB:" %)
