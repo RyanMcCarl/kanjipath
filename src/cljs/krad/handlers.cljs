@@ -121,6 +121,9 @@
  (fn [db [_ active-panel]]
    (assoc db :active-panel active-panel)))
 
+; unused because nothing is ever transacted onto DataScript db. `d/with` tells
+; us the tx-data (datoms to add & retract) and we send that to Horizon/RethinkDB
+; and only through there make it back to DataScript.
 (r/register-handler
   :transact-dsdb
   (fn [db [_ transaction]]
@@ -128,3 +131,11 @@
           txlog (d/transact! conn transaction)]
       (assoc db :txlog txlog))))
 
+(defn create-new-req-set [db grapheme required-graphemes]
+  (-> (d/with db 
+        [{:db/id [:grapheme/name grapheme]
+          :grapheme/req-set -123} ; any fixed <0 int (>0 are entids)
+         {:db/id -123
+          :req-set/requirement (mapv #(vector :grapheme/name %)
+                                     required-graphemes)}])
+      :tx-data))
