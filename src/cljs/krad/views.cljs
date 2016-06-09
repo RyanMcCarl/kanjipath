@@ -75,12 +75,12 @@
                       graphemes-table))))))
 
 (defn test-ds []
-  (let [conn-sub (r/subscribe [:conn])]
+  (let [dsdb-sub (r/subscribe [:conn-db])]
     (fn []
-      (let [[conn _] @conn-sub]
+      (let [dsdb @dsdb-sub]
         (into [:div]
               (map (fn [l] [:div (str l)])
-                   (map seq @conn)))))))
+                   (map seq dsdb)))))))
 
 ;; home
 

@@ -13,9 +13,6 @@
  :initialize-db
  (fn  [_ _]
    (let [db db/default-db]
-     ; We will just be replacing conns for now, so comment these out
-     ;(println "Listening for DataScript changes")
-     ;(d/listen! (:conn db) #(r/dispatch [:conn-transacted]))
      (-> db
          (assoc :hz (doto (js/Horizon.)
                       (.onReady #(r/dispatch [:hz-ready]))
@@ -46,15 +43,9 @@
   (fn [db [_ eavts]]
     (println "Updating EAVTs from Horizon!" eavts)
     (-> db
-        (update :conn-heartbeat inc)
         (assoc :conn (d/conn-from-datoms (map js-eavt-to-datom
                                               eavts)
                                          {} #_consts/schema)))))
-
-(r/register-handler
-  :conn-transacted
-  (fn [db _]
-    (update db :conn-heartbeat inc)))
 
 ; Right now there's only one way to initially hydrate RethinkDB with Kanji ABC
 ; EAVTs: from ClojureScript REPL:
@@ -121,9 +112,7 @@
       (let [full-dsdb (cljs.reader/read-string data)
             datoms (eavts-to-js-arrays full-dsdb)]
         (store-datoms-in-horizon (:hz-coll db) datoms)
-        db
-        #_(d/reset-conn! (:conn db) full-dsdb)
-        #_(update db :conn-heartbeat inc))
+        db)
       (do (js/alert "Failed to load Kanji ABC graphemes.")
           db))))
 

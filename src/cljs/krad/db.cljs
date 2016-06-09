@@ -8,5 +8,4 @@
    :abc-graphemes nil
    :hz nil; TODO JS externs for Horizon!
    :hz-coll nil
-   :conn (d/create-conn consts/schema)
-   :conn-heartbeat 0})
+   :conn (d/create-conn consts/schema)})
