@@ -75,12 +75,12 @@
                       graphemes-table))))))
 
 (defn test-ds []
-  (let [dsdb-sub (r/subscribe [:dsdb])]
+  (let [conn-sub (r/subscribe [:conn])]
     (fn []
-      (if-let [conn @dsdb-sub]
+      (let [[conn _] @conn-sub]
         (into [:div]
               (map (fn [l] [:div (str l)])
-                   (map seq conn)))))))
+                   (map seq @conn)))))))
 
 ;; home
 
@@ -91,7 +91,7 @@
        [:div [:a {:href "#/about"} "go to About Page"]]
        #_[tabulate-graphemes]
        [tabulate-graphemes-compact]
-       #_[test-ds]])))
+       [test-ds]])))
 
 
 ;; about

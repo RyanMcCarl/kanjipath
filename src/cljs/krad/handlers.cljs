@@ -1,9 +1,10 @@
 (ns krad.handlers
-    (:require [re-frame.core :as r]
-              [krad.db :as db]
-              [goog.net.XhrIo :as xhr]
-              [cognitect.transit :as transit]
-              [datascript.core :as d]))
+  (:require [re-frame.core :as r]
+            [krad.db :as db]
+            [krad.consts :as consts]
+            [goog.net.XhrIo :as xhr]
+            [cognitect.transit :as transit]
+            [datascript.core :as d]))
 
 (def json-reader (transit/reader :json))
 (defn from-transit [s] (transit/read json-reader s))
@@ -12,8 +13,9 @@
  :initialize-db
  (fn  [_ _]
    (let [db db/default-db]
-     (println "Listening for DataScript changes")
-     (d/listen! (:conn db) #(r/dispatch [:conn-transacted]))
+     ; We will just be replacing conns for now, so comment these out
+     ;(println "Listening for DataScript changes")
+     ;(d/listen! (:conn db) #(r/dispatch [:conn-transacted]))
      (-> db
          (assoc :hz (doto (js/Horizon.)
                       (.onReady #(r/dispatch [:hz-ready]))
@@ -25,7 +27,29 @@
   :hz-ready
   (fn [db _]
     (println "Horizon ready")
-    (assoc db :hz-coll ((:hz db) "eavt"))))
+    (let [hz-coll ((:hz db) "test")]
+      ; set up watch: incoming JS objects get dispatched
+      (-> hz-coll
+          .watch
+          (.subscribe (fn [eavts] (r/dispatch [:datoms-from-horizon eavts]))))
+      (-> db
+          (assoc :hz-coll hz-coll)))))
+
+(defn js-eavt-to-datom [obj]
+  (d/datom (aget obj "e")
+           (keyword (aget obj "a"))
+           (aget obj "v")
+           (aget obj "t")))
+
+(r/register-handler
+  :datoms-from-horizon
+  (fn [db [_ eavts]]
+    (println "Updating EAVTs from Horizon!" eavts)
+    (-> db
+        (update :conn-heartbeat inc)
+        (assoc :conn (d/conn-from-datoms (map js-eavt-to-datom
+                                              eavts)
+                                         {} #_consts/schema)))))
 
 (r/register-handler
   :conn-transacted
