@@ -47,18 +47,18 @@
                        (repeat origin-kw-to-char)))]])))))
 
 (defn tabulate-graphemes-compact []
-  (let [conn-sub (r/subscribe [:conn])]
+  (let [dsdb-sub (r/subscribe [:conn-db])]
     (fn []
-      (let [[conn] @conn-sub
+      (let [dsdb @dsdb-sub
             groups (d/q '[:find ?v .
                           :where [_ :abc/groups ?v]]
-                        @conn)
+                        dsdb)
             group-to-idx (apply hash-map (interleave groups
                                                      (range (count groups))))
             unsorted-graphemes (d/q '[:find [(pull ?e [*]) ...]
                                       :where
                                       [?e :grapheme/name _]]
-                                    @conn)
+                                    dsdb)
             graphemes-list (sort-by (juxt (comp group-to-idx :grapheme/abc-group)
                                           :grapheme/abc-number)
                                     unsorted-graphemes)

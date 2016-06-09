@@ -24,7 +24,7 @@
   :hz-ready
   (fn [db _]
     (println "Horizon ready")
-    (let [hz-coll ((:hz db) "test")]
+    (let [hz-coll ((:hz db) "eavt")]
       ; set up watch: incoming JS objects get dispatched
       (-> hz-coll
           .watch
@@ -45,7 +45,7 @@
     (-> db
         (assoc :conn (d/conn-from-datoms (map js-eavt-to-datom
                                               eavts)
-                                         {} #_consts/schema)))))
+                                         consts/schema)))))
 
 ; Right now there's only one way to initially hydrate RethinkDB with Kanji ABC
 ; EAVTs: from ClojureScript REPL:
