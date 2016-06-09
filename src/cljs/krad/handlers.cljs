@@ -74,21 +74,53 @@
 (extend-type Keyword
   IEncodeJS
   (-clj->js [s] (subs (str s) 1)))
-(defn datom-to-obj [v]
+(defn eav-to-map [v]
+  (apply hash-map (interleave ["e" "a" "v"] (take 3 v))))
+(defn eavt-to-map [v]
   (apply hash-map (interleave ["e" "a" "v" "t"] (take 4 v))))
-(defn datascript-to-js-array [db]
-  (clj->js (map datom-to-obj db)))
+(defn eavts-to-js-arrays [db]
+  (clj->js (map eavt-to-map db)))
+(defn eavs-to-js-arrays [db]
+  (clj->js (map eav-to-map db)))
+
+
+
+(defn remove-datoms-in-horizon [coll datoms]
+  (when (not (empty? datoms))
+    (-> (.apply (.-findAll coll) coll datoms)
+        (.fetch)
+        (.subscribe #(do (println "Looked for:" datoms " and removing:" %)
+                       (-> coll (.removeAll %)))
+                    #(println "ERROR in findAlls" %)))))
+
+(defn store-datoms-in-horizon [coll datoms]
+  (when (not (empty? datoms))
+    (-> coll
+      (.store datoms)
+      (.subscribe #(println "Success writing to RethinkDB:" %)
+                  #(println "ERROR writing to RethinkDB:" %)))))
+
+(r/register-handler
+  :submit-transaction
+  (fn [db [_ tx]]
+    (let [conn (:conn db)
+          tx-report (d/with @conn tx)
+          tx-data (:tx-data tx-report)
+          {add true
+           retract false} (group-by #(nth % 4) tx-data)
+          coll (:hz-coll db)]
+      (remove-datoms-in-horizon coll (eavs-to-js-arrays retract))
+      (store-datoms-in-horizon coll (eavts-to-js-arrays add))
+      db
+      )))
 
 (r/register-handler
   :abc-dsdb-received
   (fn [db [_ {:keys [status content-type data]}]]
     (if (= status 200)
       (let [full-dsdb (cljs.reader/read-string data)
-            datoms (datascript-to-js-array full-dsdb)]
-        (-> (:hz-coll db)
-            (.store datoms)
-            (.subscribe #(println "Success writing to RethinkDB:" %)
-                        #(println "ERROR writing to RethinkDB:" %)))
+            datoms (eavts-to-js-arrays full-dsdb)]
+        (store-datoms-in-horizon (:hz-coll db) datoms)
         db
         #_(d/reset-conn! (:conn db) full-dsdb)
         #_(update db :conn-heartbeat inc))
