@@ -29,23 +29,6 @@
                                         (map origin-kw-to-char)))]])
              graphemes)))
 
-(defn tabulate-graphemes []
-  (let [abc-graphemes (r/subscribe [:abc-graphemes])]
-    (fn []
-      (if @abc-graphemes
-        (let [{:keys [table groups origin-kw-to-char]} @abc-graphemes]
-          [:div.graphemes-main
-           [:table
-            [:thead (into [:tr [:td "Group"]]
-                          (map (fn [n] [:td n])
-                               (range 1 27)))]
-
-            (into [:tbody]
-                  (map tabulate-grapheme-row
-                       groups
-                       table
-                       (repeat origin-kw-to-char)))]])))))
-
 (defn tabulate-graphemes-compact []
   (let [dsdb-sub (r/subscribe [:conn-db])]
     (fn []
@@ -65,13 +48,16 @@
             graphemes-table (partition-by :grapheme/abc-group graphemes-list)
             ]
         (into [:div.graphemes-abc]
-              (mapcat (fn [group-name graphemes]
-                        (into [[:div {:key group-name} (str "(" group-name ")　")]]
-                              (map (fn [{name :grapheme/name :as g}]
-                                     [:div (make-grapheme-name name) "　"])
-                                   graphemes)))
-                      groups
-                      graphemes-table))))))
+              (mapcat
+                (fn [group-name graphemes]
+                  (into [[:div.group {:key group-name} (str "(" group-name ")　")]]
+                        (map (fn [{name :grapheme/name :as g}]
+                               [:div.grapheme
+                                {:onClick #(r/dispatch [:grapheme-clicked name])}
+                                (make-grapheme-name name) "　"])
+                             graphemes)))
+                groups
+                graphemes-table))))))
 
 (defn test-ds []
   (let [dsdb-sub (r/subscribe [:conn-db])]

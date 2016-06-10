@@ -5,12 +5,7 @@
 (r/register-sub :db (fn [db _] (reaction @db)))
 (r/register-sub :name (fn [db _] (reaction (:name @db))))
 (r/register-sub :active-panel (fn [db _] (reaction (:active-panel @db))))
-(r/register-sub :abc-graphemes (fn [db _] (reaction (:abc-graphemes @db))))
 ; this just returns the DataScript database in conn
 (r/register-sub :conn-db (fn [db _]
                                 (reaction @(:conn @db))))
-; this returns the conn and a dummy number.
-(r/register-sub :conn (fn [db _]
-                        (let [heartbeat-sub (reaction (:conn-heartbeat @db))]
-                          (reaction [(:conn @db) @heartbeat-sub]))))
 

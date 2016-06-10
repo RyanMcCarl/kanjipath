@@ -8,4 +8,6 @@
    :abc-graphemes nil
    :hz nil; TODO JS externs for Horizon!
    :hz-coll nil
-   :conn (d/create-conn consts/schema)})
+   :conn (d/create-conn consts/schema)
+   :grapheme-name nil
+   :grapheme-req-names []})

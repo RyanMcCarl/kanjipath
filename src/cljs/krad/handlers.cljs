@@ -1,6 +1,7 @@
 (ns krad.handlers
   (:require [re-frame.core :as r]
-            [krad.db :as db]
+            [clojure.string :as string]
+            [krad.db :refer [default-db]]
             [krad.consts :as consts]
             [goog.net.XhrIo :as xhr]
             [cognitect.transit :as transit]
@@ -12,7 +13,7 @@
 (r/register-handler
  :initialize-db
  (fn  [_ _]
-   (let [db db/default-db]
+   (let [db default-db]
      (-> db
          (assoc :hz (doto (js/Horizon.)
                       (.onReady #(r/dispatch [:hz-ready]))
@@ -138,3 +139,20 @@
           :req-set/grapheme [:grapheme/name grapheme]}])
       :tx-data))
 
+(r/register-handler
+  :grapheme-clicked
+  (fn [{:as db :keys [grapheme-name grapheme-req-names]} [_ clicked-name]]
+    (if (nil? grapheme-name)
+      (assoc db :grapheme-name clicked-name)
+      (if (= grapheme-name clicked-name)
+        (do
+          ; some side-effect function of grapheme-req-names
+          (println (str grapheme-name
+                        " has requirements: "
+                        (string/join " "
+                                     grapheme-req-names)))
+          ; reset db values
+          (-> db
+              (assoc :grapheme-name (:grapheme-name default-db))
+              (assoc :grapheme-req-names (:grapheme-req-names default-db))))
+        (update db :grapheme-req-names conj clicked-name)))))
