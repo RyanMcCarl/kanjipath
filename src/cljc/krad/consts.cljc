@@ -12,11 +12,11 @@
 
 (def schema {; grapheme will have only one name, and that name identifies only it
              :grapheme/name (merge unique one)
-             ; grapheme may have multiple requirement-sets
-             :grapheme/req-set (merge many refval)
 
              ; multiple graphemes comprise requirement
              :req-set/requirement (merge many refval) 
+             ; requirement is for a single grapheme
+             :req-set/grapheme (merge one refval)
              ; many users may downvote this
              :req-set/downvote (merge many refval)
 

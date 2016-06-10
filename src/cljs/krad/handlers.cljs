@@ -41,7 +41,7 @@
 (r/register-handler
   :datoms-from-horizon
   (fn [db [_ eavts]]
-    (println "Updating EAVTs from Horizon!" eavts)
+    (println "Updating EAVTs from Horizon!" #_eavts)
     (-> db
         (assoc :conn (d/conn-from-datoms (map js-eavt-to-datom
                                               eavts)
@@ -133,9 +133,8 @@
 
 (defn create-new-req-set [db grapheme required-graphemes]
   (-> (d/with db 
-        [{:db/id [:grapheme/name grapheme]
-          :grapheme/req-set -123} ; any fixed <0 int (>0 are entids)
-         {:db/id -123
-          :req-set/requirement (mapv #(vector :grapheme/name %)
-                                     required-graphemes)}])
+        [{:req-set/requirement (mapv #(vector :grapheme/name %)
+                                     required-graphemes)
+          :req-set/grapheme [:grapheme/name grapheme]}])
       :tx-data))
+

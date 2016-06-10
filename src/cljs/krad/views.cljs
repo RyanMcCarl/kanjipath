@@ -62,12 +62,11 @@
             graphemes-list (sort-by (juxt (comp group-to-idx :grapheme/abc-group)
                                           :grapheme/abc-number)
                                     unsorted-graphemes)
-            graphemes-table (mapv #(into [(first %)] %)
-                                  (partition-by :grapheme/abc-group graphemes-list))
+            graphemes-table (partition-by :grapheme/abc-group graphemes-list)
             ]
         (into [:div.graphemes-abc]
               (mapcat (fn [group-name graphemes]
-                        (into [[:div {:key group-name} (str "(" group-name ")")]]
+                        (into [[:div {:key group-name} (str "(" group-name ")　")]]
                               (map (fn [{name :grapheme/name :as g}]
                                      [:div (make-grapheme-name name) "　"])
                                    graphemes)))
