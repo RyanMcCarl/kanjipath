@@ -8,4 +8,7 @@
 ; this just returns the DataScript database in conn
 (r/register-sub :conn-db (fn [db _]
                                 (reaction @(:conn @db))))
+(r/register-sub :grapheme-names
+                (fn [db _]
+                  (reaction ((juxt :grapheme-name :grapheme-req-names) @db))))
 

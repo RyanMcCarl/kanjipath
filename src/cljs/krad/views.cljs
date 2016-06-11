@@ -2,6 +2,7 @@
   (:require-macros
     [cljs.core.async.macros :as asyncm :refer (go go-loop)])
   (:require [re-frame.core :as r]
+            [garden.core :refer [css]]
             [clojure.string :as string]
             [datascript.core :as d]
             [cljs.core.async :as async :refer (<! >! put! chan)]
@@ -53,7 +54,8 @@
                   (into [[:div.group {:key group-name} (str "(" group-name ")　")]]
                         (map (fn [{name :grapheme/name :as g}]
                                [:div.grapheme
-                                {:onClick #(r/dispatch [:grapheme-clicked name])}
+                                {:onClick #(r/dispatch [:grapheme-clicked name])
+                                 :className name}
                                 (make-grapheme-name name) "　"])
                              graphemes)))
                 groups
@@ -67,12 +69,25 @@
               (map (fn [l] [:div (str l)])
                    (map seq dsdb)))))))
 
+
+(defn make-css []
+  (let [grapheme-sub (r/subscribe [:grapheme-names])]
+    (fn []
+      (let [str-to-class #(keyword (str "." %))
+            [grapheme-name grapheme-req-names] @grapheme-sub]
+        [:style (css (when grapheme-name [(str-to-class grapheme-name)
+                                          {:color "red"}])
+                     (conj (mapv str-to-class grapheme-req-names)
+                           {:color "green"})
+                     )]))))
+
 ;; home
 
 (defn home-panel []
   (let [name (r/subscribe [:name])]
     (fn []
       [:div (str "Hello from " @name ". This is the Home Page.")
+       [make-css]
        [:div [:a {:href "#/about"} "go to About Page"]]
        #_[tabulate-graphemes]
        [tabulate-graphemes-compact]
