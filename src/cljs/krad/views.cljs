@@ -63,7 +63,8 @@
                                       [?e :grapheme/name _]]
                                     dsdb)
             graphemes-list (sort-by (juxt (comp group-to-idx :grapheme/abc-group)
-                                          :grapheme/abc-number)
+                                          :grapheme/abc-number
+                                          :grapheme/name)
                                     unsorted-graphemes)
             graphemes-table (partition-by :grapheme/abc-group graphemes-list)
             ]
