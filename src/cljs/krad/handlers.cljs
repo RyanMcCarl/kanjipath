@@ -3,7 +3,9 @@
             [clojure.string :as string]
             [krad.db :refer [default-db]]
             [krad.consts :as consts]
+            [krad.data :as kdata]
             [goog.net.XhrIo :as xhr]
+            [clojure.set :refer [difference]]
             [cognitect.transit :as transit]
             [datascript.core :as d]))
 
@@ -48,20 +50,6 @@
                                               eavts)
                                          consts/schema)))))
 
-; Right now there's only one way to initially hydrate RethinkDB with Kanji ABC
-; EAVTs: from ClojureScript REPL:
-; $ lein figwheel dev
-; then
-; => (do (require '[re-frame.core :as r]) (r/dispatch [:request-dsdb]))
-(r/register-handler
-  :request-dsdb
-  (fn [db _]
-    (xhr/send "/kanji-abc-datascript.edn"
-              #(r/dispatch [:abc-dsdb-received
-                            {:status (-> % .-target .getStatus)
-                             :content-type (-> % .-target (.getResponseHeader "Content-Type"))
-                             :data (-> % .-target .getResponseText)}]))
-    db))
 
 (extend-type Keyword
   IEncodeJS
@@ -105,41 +93,17 @@
       (store-datoms-in-horizon coll (eavts-to-js-arrays add))
       db
       )))
-
-(r/register-handler
-  :abc-dsdb-received
-  (fn [db [_ {:keys [status content-type data]}]]
-    (if (= status 200)
-      (let [full-dsdb (cljs.reader/read-string data)
-            datoms (eavts-to-js-arrays full-dsdb)]
-        (store-datoms-in-horizon (:hz-coll db) datoms)
-        db)
-      (do (js/alert "Failed to load Kanji ABC graphemes.")
-          db))))
-
-(r/register-handler
- :set-active-panel
- (fn [db [_ active-panel]]
-   (assoc db :active-panel active-panel)))
-
-; unused because nothing is ever transacted onto DataScript db. `d/with` tells
-; us the tx-data (datoms to add & retract) and we send that to Horizon/RethinkDB
-; and only through there make it back to DataScript.
-(r/register-handler
-  :transact-dsdb
-  (fn [db [_ transaction]]
-    (let [conn (:dsdb db)
-          txlog (d/transact! conn transaction)]
-      (assoc db :txlog txlog))))
-
 (defn new-req-set-to-transaction [grapheme required-graphemes]
   [{:req-set/requirement (mapv #(vector :grapheme/name %)
                                required-graphemes)
     :req-set/grapheme [:grapheme/name grapheme]}])
 
-(defn test-create-new-req-set [grapheme required-graphemes db]
-  (-> (d/with db (new-req-set-to-transaction grapheme required-graphemes))
+(defn test-transaction [db tx]
+  (-> (d/with db tx)
       :tx-data))
+
+(defn test-create-new-req-set [grapheme required-graphemes db]
+  (test-transaction db (new-req-set-to-transaction grapheme required-graphemes)))
 
 (defn submit-new-req-set [grapheme required-graphemes]
   (if (-> required-graphemes count (> 1))
@@ -167,3 +131,67 @@
               (assoc :grapheme-name (:grapheme-name default-db))
               (assoc :grapheme-req-names (:grapheme-req-names default-db))))
         (update db :grapheme-req-names conj clicked-name)))))
+
+; Right now there's only one way to initially hydrate RethinkDB with Kanji ABC
+; EAVTs: from ClojureScript REPL:
+; $ lein figwheel dev
+; then
+#_(do
+    (require '[re-frame.core :as r])
+    (r/dispatch [:request-abc-dsdb])
+    (r/dispatch [:add-kanji]))
+(r/register-handler
+  :add-kanji
+  (fn [db _]
+    (let [dsdb @(-> db :conn)
+          already-in (set (d/q '[:find [?name ...]
+                               :where
+                               [_ :grapheme/name ?name]]
+                             dsdb))
+        make-tx (fn [input-set origin-kw]
+                  (mapv (fn [k] {:grapheme/name k
+                                 :grapheme/origins [origin-kw]})
+                        (sort (difference input-set already-in))))
+        joyo-tx (make-tx kdata/joyo :jouyou)
+        jinmeiyo-tx (make-tx kdata/jinmeiyo :jinmeiyo)
+        ]
+    (r/dispatch [:submit-transaction (into joyo-tx jinmeiyo-tx)])
+    db)))
+
+(r/register-handler
+  :request-abc-dsdb
+  (fn [db _]
+    (xhr/send "/kanji-abc-datascript.edn"
+              #(r/dispatch [:abc-dsdb-received
+                            {:status (-> % .-target .getStatus)
+                             :content-type (-> % .-target (.getResponseHeader "Content-Type"))
+                             :data (-> % .-target .getResponseText)}]))
+    db))
+
+(r/register-handler
+  :abc-dsdb-received
+  (fn [db [_ {:keys [status content-type data]}]]
+    (if (= status 200)
+      (let [full-dsdb (cljs.reader/read-string data)
+            datoms (eavts-to-js-arrays full-dsdb)]
+        (store-datoms-in-horizon (:hz-coll db) datoms)
+        db)
+      (do (js/alert "Failed to load Kanji ABC graphemes.")
+          db))))
+
+(r/register-handler
+ :set-active-panel
+ (fn [db [_ active-panel]]
+   (assoc db :active-panel active-panel)))
+
+; unused because nothing is ever transacted onto DataScript db. `d/with` tells
+; us the tx-data (datoms to add & retract) and we send that to Horizon/RethinkDB
+; and only through there make it back to DataScript.
+(r/register-handler
+  :transact-dsdb
+  (fn [db [_ transaction]]
+    (let [conn (:dsdb db)
+          txlog (d/transact! conn transaction)]
+      (assoc db :txlog txlog))))
+
+

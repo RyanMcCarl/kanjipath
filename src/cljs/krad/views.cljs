@@ -30,6 +30,9 @@
                                         (map origin-kw-to-char)))]])
              graphemes)))
 
+(defn render-req-set [required-graphemes grapheme]
+  [:div.req-set (string/join "+" required-graphemes)])
+
 (defn render-grapheme [conn-db {graph-name :grapheme/name :as grapheme}]
   (let [req-sets (d/q {:find '[?reqset (distinct ?reqset-grapheme-name)]
                        :where [['?reqset :req-set/grapheme [:grapheme/name graph-name]]
@@ -37,11 +40,11 @@
                                '[?reqset-grapheme :grapheme/name ?reqset-grapheme-name]]}
                       conn-db)
         req-sets (map (comp #(apply str %) second) req-sets)]
-    [:div.grapheme
-     [:span
-      {:onClick #(r/dispatch [:grapheme-clicked graph-name]) :className graph-name}
-      (make-grapheme-name graph-name)]
-      (when-not (empty? req-sets) (pr-str req-sets))  "　"]))
+    (into [:div.grapheme
+           [:span
+            {:onClick #(r/dispatch [:grapheme-clicked graph-name]) :className graph-name}
+            (make-grapheme-name graph-name)]]
+          (mapv render-req-set req-sets))))
 
 
 (defn tabulate-graphemes-compact []
@@ -53,6 +56,8 @@
                         dsdb)
             group-to-idx (apply hash-map (interleave groups
                                                      (range (count groups))))
+            group-to-idx (assoc group-to-idx nil 1e3)
+
             unsorted-graphemes (d/q '[:find [(pull ?e [*]) ...]
                                       :where
                                       [?e :grapheme/name _]]
@@ -68,7 +73,8 @@
                   (into [[:div.group {:key group-name} (str "(" group-name ")　")]]
                         (map #(render-grapheme dsdb %)
                              graphemes)))
-                groups
+                (map #(-> % first :grapheme/abc-group (or "_"))
+                     graphemes-table) ; not groups
                 graphemes-table))))))
 
 (defn test-ds []
@@ -77,7 +83,7 @@
       (let [dsdb @dsdb-sub]
         (into [:div]
               (map (fn [l] [:div (str l)])
-                   (map seq dsdb)))))))
+                   (map seq (take-last 50 dsdb))))))))
 
 
 (defn make-css []
@@ -99,9 +105,8 @@
       [:div (str "Hello from " @name ". This is the Home Page.")
        [make-css]
        [:div [:a {:href "#/about"} "go to About Page"]]
-       #_[tabulate-graphemes]
        [tabulate-graphemes-compact]
-       [test-ds]])))
+       #_[test-ds]])))
 
 
 ;; about

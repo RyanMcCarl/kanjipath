@@ -10,4 +10,13 @@
   [:table :thead :td {:border "1px solid rgb(240,240,240)"}]
   [:div.graphemes-abc {:display "flex"
                        :flex-wrap "wrap"}]
+  [:.grapheme {:display "flex"
+               :flex-wrap "wrap"
+               :background-color "#fafafa"
+               :margin-right "1em"
+               :margin-bottom "0.25em"
+               :padding "0.1em"}]
+  [:.req-set {:background-color "#eee"
+             :margin-right "0.5em"
+             :margin-left "0.5em"}]
 )
