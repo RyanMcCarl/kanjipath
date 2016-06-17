@@ -30,6 +30,20 @@
                                         (map origin-kw-to-char)))]])
              graphemes)))
 
+(defn render-grapheme [conn-db {graph-name :grapheme/name :as grapheme}]
+  (let [req-sets (d/q {:find '[?reqset (distinct ?reqset-grapheme-name)]
+                       :where [['?reqset :req-set/grapheme [:grapheme/name graph-name]]
+                               '[?reqset :req-set/requirement ?reqset-grapheme]
+                               '[?reqset-grapheme :grapheme/name ?reqset-grapheme-name]]}
+                      conn-db)
+        req-sets (map (comp #(apply str %) second) req-sets)]
+    [:div.grapheme
+     [:span
+      {:onClick #(r/dispatch [:grapheme-clicked graph-name]) :className graph-name}
+      (make-grapheme-name graph-name)]
+      (when-not (empty? req-sets) (pr-str req-sets))  "　"]))
+
+
 (defn tabulate-graphemes-compact []
   (let [dsdb-sub (r/subscribe [:conn-db])]
     (fn []
@@ -52,11 +66,7 @@
               (mapcat
                 (fn [group-name graphemes]
                   (into [[:div.group {:key group-name} (str "(" group-name ")　")]]
-                        (map (fn [{name :grapheme/name :as g}]
-                               [:div.grapheme
-                                {:onClick #(r/dispatch [:grapheme-clicked name])
-                                 :className name}
-                                (make-grapheme-name name) "　"])
+                        (map #(render-grapheme dsdb %)
                              graphemes)))
                 groups
                 graphemes-table))))))
