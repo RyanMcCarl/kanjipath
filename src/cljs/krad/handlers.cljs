@@ -132,12 +132,20 @@
           txlog (d/transact! conn transaction)]
       (assoc db :txlog txlog))))
 
-(defn create-new-req-set [db grapheme required-graphemes]
-  (-> (d/with db 
-        [{:req-set/requirement (mapv #(vector :grapheme/name %)
-                                     required-graphemes)
-          :req-set/grapheme [:grapheme/name grapheme]}])
+(defn new-req-set-to-transaction [grapheme required-graphemes]
+  [{:req-set/requirement (mapv #(vector :grapheme/name %)
+                               required-graphemes)
+    :req-set/grapheme [:grapheme/name grapheme]}])
+
+(defn test-create-new-req-set [grapheme required-graphemes db]
+  (-> (d/with db (new-req-set-to-transaction grapheme required-graphemes))
       :tx-data))
+
+(defn submit-new-req-set [grapheme required-graphemes]
+  (if-not (empty? required-graphemes)
+    (r/dispatch [:submit-transaction
+                       (new-req-set-to-transaction grapheme
+                                                   required-graphemes)])))
 
 (r/register-handler
   :grapheme-clicked
@@ -147,10 +155,13 @@
       (if (= grapheme-name clicked-name)
         (do
           ; some side-effect function of grapheme-req-names
+          (submit-new-req-set grapheme-name grapheme-req-names)
+
           (println (str grapheme-name
                         " has requirements: "
                         (string/join " "
                                      grapheme-req-names)))
+
           ; reset db values
           (-> db
               (assoc :grapheme-name (:grapheme-name default-db))
