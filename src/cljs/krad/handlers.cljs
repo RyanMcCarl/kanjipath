@@ -142,7 +142,7 @@
       :tx-data))
 
 (defn submit-new-req-set [grapheme required-graphemes]
-  (if-not (empty? required-graphemes)
+  (if (-> required-graphemes count (> 1))
     (r/dispatch [:submit-transaction
                        (new-req-set-to-transaction grapheme
                                                    required-graphemes)])))
