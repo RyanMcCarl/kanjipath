@@ -39,8 +39,9 @@
                                '[?reqset :req-set/requirement ?reqset-grapheme]
                                '[?reqset-grapheme :grapheme/name ?reqset-grapheme-name]]}
                       conn-db)
-        req-sets (map (comp #(apply str %) second) req-sets)]
+        req-sets (map second req-sets)]
     (into [:div.grapheme
+           {:key graph-name}
            [:span
             {:onClick #(r/dispatch [:grapheme-clicked graph-name]) :className graph-name}
             (make-grapheme-name graph-name)]]
@@ -67,8 +68,20 @@
                                           :grapheme/name)
                                     unsorted-graphemes)
             graphemes-table (partition-by :grapheme/abc-group graphemes-list)
+
+            groups-all (map #(-> % first :grapheme/abc-group (or "_"))
+                            graphemes-table)
             ]
-        (into [:div.graphemes-abc]
+        [:div.graphemes-abc
+         (map (fn [group-name graphemes]
+                [:div.group
+                 {:key group-name}
+                 (str "(" group-name ")")
+                 (map (fn [g] (render-grapheme dsdb g))
+                      graphemes)])
+              groups-all
+              graphemes-table)]
+        #_(into [:div.graphemes-abc]
               (mapcat
                 (fn [group-name graphemes]
                   (into [[:div.group {:key group-name} (str "(" group-name ")　")]]

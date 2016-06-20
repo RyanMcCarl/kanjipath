@@ -10,6 +10,9 @@
   [:table :thead :td {:border "1px solid rgb(240,240,240)"}]
   [:div.graphemes-abc {:display "flex"
                        :flex-wrap "wrap"}]
+  [:.group {:display "flex"
+            :flex-wrap "wrap"
+            :width "100%"}]
   [:.grapheme {:display "flex"
                :flex-wrap "wrap"
                :background-color "#fafafa"

@@ -12,3 +12,4 @@
 (def joyo (string-to-set joyo-string))
 (def jinmeiyo (string-to-set jinmeiyo-string))
 (def joyo+jinmeiyo (union joyo jinmeiyo))
+
