@@ -31,22 +31,29 @@
              graphemes)))
 
 (defn render-req-set [required-graphemes grapheme]
-  [:div.req-set (string/join "+" required-graphemes)])
+  (let [out (string/join "," required-graphemes)]
+    [:div.req-set {:key (str grapheme out)} out]))
 
-(defn render-grapheme [conn-db {graph-name :grapheme/name :as grapheme}]
-  (let [req-sets (d/q {:find '[?reqset (distinct ?reqset-grapheme-name)]
-                       :where [['?reqset :req-set/grapheme [:grapheme/name graph-name]]
-                               '[?reqset :req-set/requirement ?reqset-grapheme]
-                               '[?reqset-grapheme :grapheme/name ?reqset-grapheme-name]]}
-                      conn-db)
-        req-sets (map second req-sets)]
-    (into [:div.grapheme
-           {:key graph-name}
-           [:span
-            {:onClick #(r/dispatch [:grapheme-clicked graph-name]) :className graph-name}
-            (make-grapheme-name graph-name)]]
-          (mapv render-req-set req-sets))))
+(defn render-grapheme [req-lists {graph-name :grapheme/name :as grapheme}]
+  [:div.grapheme
+   {:key graph-name}
+   [:span
+    {:key (str "span-" graph-name)
+     :onClick #(r/dispatch [:grapheme-clicked graph-name]) :className graph-name}
+    (make-grapheme-name graph-name)]
+   (map render-req-set req-lists)])
 
+(defn db-to-reqs [dsdb]
+  (let [q-results (d/q '[:find ?gn ?rs (distinct ?rg)
+                         :where [?rs :req-set/grapheme ?g]
+                         [?g :grapheme/name ?gn]
+                         [?rs :req-set/requirement ?rsr]
+                         [?rsr :grapheme/name ?rg]]
+                       dsdb)
+        results-map (group-by first q-results)
+        results-map (into {} (map (fn [[k v]] [k (mapv #(nth % 2) v)])
+                                  results-map))]
+    results-map))
 
 (defn tabulate-graphemes-compact []
   (let [dsdb-sub (r/subscribe [:conn-db])]
@@ -71,25 +78,20 @@
 
             groups-all (map #(-> % first :grapheme/abc-group (or "_"))
                             graphemes-table)
+
+            graphemes-and-requirements (db-to-reqs dsdb)
             ]
         [:div.graphemes-abc
          (map (fn [group-name graphemes]
                 [:div.group
                  {:key group-name}
                  (str "(" group-name ")")
-                 (map (fn [g] (render-grapheme dsdb g))
+                 (map (fn [g] (render-grapheme (get graphemes-and-requirements
+                                                    (:grapheme/name g))
+                                               g))
                       graphemes)])
               groups-all
-              graphemes-table)]
-        #_(into [:div.graphemes-abc]
-              (mapcat
-                (fn [group-name graphemes]
-                  (into [[:div.group {:key group-name} (str "(" group-name ")　")]]
-                        (map #(render-grapheme dsdb %)
-                             graphemes)))
-                (map #(-> % first :grapheme/abc-group (or "_"))
-                     graphemes-table) ; not groups
-                graphemes-table))))))
+              graphemes-table)]))))
 
 (defn test-ds []
   (let [dsdb-sub (r/subscribe [:conn-db])]
