@@ -11,4 +11,6 @@
 (r/register-sub :grapheme-names
                 (fn [db _]
                   (reaction ((juxt :grapheme-name :grapheme-req-names) @db))))
+(r/register-sub :auth? (fn [db _] (reaction (:auth? @db))))
+(r/register-sub :auth-endpoints (fn [db _] (reaction (:auth-endpoints @db))))
 

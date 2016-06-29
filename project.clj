@@ -47,7 +47,9 @@
     {:builds
      [{:id           "dev"
        :source-paths ["src/cljs" "src/cljc"]
-       :figwheel     {:on-jsload "krad.core/mount-root"}
+       :figwheel     {:on-jsload "krad.core/mount-root"
+                      :websocket-url "wss://localhost:34490/figwheel-ws"
+                      }
        :compiler     {:main                 krad.core
                       :output-to            "resources/public/js/compiled/app.js"
                       :output-dir           "resources/public/js/compiled/out"

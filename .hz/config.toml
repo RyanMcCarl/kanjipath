@@ -14,9 +14,9 @@
 # 'secure' will disable HTTPS and use HTTP instead when set to 'false'
 # 'key_file' and 'cert_file' are required for serving HTTPS
 #------------------------------------------------------------------------------
-# secure = true
-# key_file = "horizon-key.pem"
-# cert_file = "horizon-cert.pem"
+secure = true
+key_file = "horizon-key.pem"
+cert_file = "horizon-cert.pem"
 
 
 ###############################################################################
@@ -85,9 +85,9 @@ token_secret = "X54/LLWF0yjuUwQ8io0qljxU/EdAx0GVgXPtTry4/u8jZouU01rEHZdq2+VP3xu1
 # id = "0000000000000000000000000"
 # secret = "00000000000000000000000000000000000000000000000000"
 #
-# [auth.github]
-# id = "00000000000000000000"
-# secret = "0000000000000000000000000000000000000000"
+[auth.github]
+id = "98f1d175613e09dac5c3"
+secret = "0b1cf348bde18fc884c83972873cbb57c9f8c887"
 #
 # [auth.twitch]
 # id = "0000000000000000000000000000000"

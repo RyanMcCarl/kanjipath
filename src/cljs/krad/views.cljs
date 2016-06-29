@@ -113,14 +113,35 @@
                            {:color "green"})
                      )]))))
 
+(defn choose-login []
+  (let [auth-endpoints-sub (r/subscribe [:auth-endpoints])]
+    (fn []
+      (let [auth-endpoints @auth-endpoints-sub]
+        (into [:ul]
+              (map (fn [[provider endpoint]] [:li
+                                              "Log in with "
+                                              [:a {:href endpoint}
+                                               provider]]))
+              auth-endpoints)))))
+
+(defn auth-info []
+  (let [auth?-sub (r/subscribe [:auth?])]
+    (fn []
+      (let [auth? @auth?-sub]
+        [:div.auth
+         (if auth?
+           [:span "You are logged in!"]
+           [choose-login])]))))
+
 ;; home
 
 (defn home-panel []
   (let [name (r/subscribe [:name])]
     (fn []
-      [:div (str "Hello from " @name ". This is the Home Page.")
+      [:div ;(str "Hello from " @name ". This is the Home Page.")
        [make-css]
-       [:div [:a {:href "#/about"} "go to About Page"]]
+       ; [:div [:a {:href "#/about"} "go to About Page"]]
+       [auth-info]
        [tabulate-graphemes-compact]
        #_[test-ds]])))
 

@@ -13,15 +13,32 @@
 (defn from-transit [s] (transit/read json-reader s))
 
 (r/register-handler
- :initialize-db
- (fn  [_ _]
-   (let [db default-db]
-     (-> db
-         (assoc :hz (doto (js/Horizon.)
-                      (.onReady #(r/dispatch [:hz-ready]))
-                      ; Horizon connects when collection first used. No: connect
-                      ; explicitly so we can have our collection in db.
-                      (.connect)))))))
+  :initialize-db
+  (fn  [_ _]
+    (let [db default-db
+          hz (doto (js/Horizon. #js {"authType" "unauthenticated"})
+               (.onReady #(r/dispatch [:hz-ready]))
+               ; Horizon connects when collection first used. No: connect
+               ; explicitly so we can have our collection in db.
+               (.connect))
+          has-auth-token (.hasAuthToken hz)
+          _ (mapv (fn [provider] (-> hz
+                                     (.authEndpoint provider)
+                                     (.subscribe #(r/dispatch [:auth-endpoint-arriving provider %]))))
+                  (keys (:auth-endpoints db)))]
+      (-> db
+          (assoc :hz hz)
+          (assoc :auth? has-auth-token)))))
+
+(r/register-handler
+  :auth-endpoint-arriving
+  (fn [db [_ provider endpoint]]
+    (assoc-in db [:auth-endpoints provider] endpoint)))
+
+(defn forward-to-auth [hz]
+  (-> hz
+      (.authEndpoint "github")
+      (.subscribe #(set! window.location.pathname %))))
 
 (r/register-handler
   :hz-ready

@@ -20,6 +20,13 @@ lein garden auto
 
 ### Start figwheel
 
+First start [tunnels](https://github.com/jugyo/tunnels) and run
+```
+tunnels 34490 3449
+```
+and open [https://localhost:34490](https://localhost:34490) in your browser to accept tunnels' unverified TLS certificate. (This browser thing has to be done only once.)
+
+Then,
 ```
 lein clean
 lein figwheel dev
@@ -28,8 +35,10 @@ lein figwheel dev
 Figwheel will automatically push cljs changes to the browser.
 
 ### Start Horizon
+Generate keys if needed with `hz create-cert`. Then,
+
 ```
-$ hz serve --dev --serve-static resources/public
+$ hz serve --dev --secure yes --serve-static resources/public
 ```
 
 ### Start the webserver

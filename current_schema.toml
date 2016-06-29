@@ -9,3 +9,10 @@ indexes = ["a"]
 [groups.admin]
 [groups.admin.rules.carte_blanche]
 template = "any()"
+
+[groups.authenticated.rules.write]
+template = "collection('eavt').anyWrite()"
+
+[groups.default.rules.read]
+template = "collection('eavt').anyRead()"
+
