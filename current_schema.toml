@@ -1,0 +1,11 @@
+# This is a TOML document
+
+[collections.test]
+indexes = ["e","e_v_a_t","meta_cnt_arr_\\_\\_hash_cljs$lang$protocol\\_mask$partition0$_cljs$lang$protocol\\_mask$partition1$"]
+
+[collections.eavt]
+indexes = ["a"]
+
+[groups.admin]
+[groups.admin.rules.carte_blanche]
+template = "any()"
