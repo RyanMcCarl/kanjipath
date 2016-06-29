@@ -38,7 +38,7 @@ Figwheel will automatically push cljs changes to the browser.
 Generate keys if needed with `hz create-cert`. Then,
 
 ```
-$ hz serve --dev --secure yes --serve-static resources/public
+$ hz serve --dev --permissions yes --secure yes --serve-static resources/public
 ```
 
 ### Start the webserver
