@@ -7,3 +7,4 @@ out
 /resources/public/css/
 .nrepl-port
 rethinkdb_data/
+*.pem
