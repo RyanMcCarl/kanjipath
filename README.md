@@ -35,7 +35,11 @@ lein figwheel dev
 Figwheel will automatically push cljs changes to the browser.
 
 ### Start Horizon
-Generate keys if needed with `hz create-cert`. Then,
+Generate keys if needed with `hz create-cert`.
+
+Then, update the schema with `hz set-schema current_schema.toml`.
+
+Finally:
 
 ```
 $ hz serve --dev --permissions yes --secure yes --serve-static resources/public
