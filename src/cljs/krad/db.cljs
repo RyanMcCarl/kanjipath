@@ -10,6 +10,7 @@
    :hz-coll nil
    :auth? false
    :auth-endpoints {"github" nil}
+   :current-user #js {}
    :conn (d/create-conn consts/schema)
    :grapheme-name nil
    :grapheme-req-names []})

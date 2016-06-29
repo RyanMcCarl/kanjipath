@@ -21,14 +21,25 @@
                ; Horizon connects when collection first used. No: connect
                ; explicitly so we can have our collection in db.
                (.connect))
-          has-auth-token (.hasAuthToken hz)
-          _ (mapv (fn [provider] (-> hz
-                                     (.authEndpoint provider)
-                                     (.subscribe #(r/dispatch [:auth-endpoint-arriving provider %]))))
-                  (keys (:auth-endpoints db)))]
+          has-auth-token (.hasAuthToken hz)]
+      (-> hz
+          (.currentUser)
+          (.fetch)
+          (.subscribe #(r/dispatch [:current-user-arriving %])))
+      (mapv (fn [provider]
+              (-> hz
+                  (.authEndpoint provider)
+                  (.subscribe #(r/dispatch
+                                 [:auth-endpoint-arriving provider %]))))
+            (keys (:auth-endpoints db)))
       (-> db
           (assoc :hz hz)
           (assoc :auth? has-auth-token)))))
+
+(r/register-handler
+  :current-user-arriving
+  (fn [db [_ data]]
+    (assoc db :current-user data)))
 
 (r/register-handler
   :auth-endpoint-arriving

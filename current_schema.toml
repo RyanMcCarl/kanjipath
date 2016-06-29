@@ -16,3 +16,6 @@ template = "collection('eavt').anyWrite()"
 [groups.default.rules.read]
 template = "collection('eavt').anyRead()"
 
+[groups.default.rules.read_current_user]
+template = "collection('users').find({id: userId()})"
+

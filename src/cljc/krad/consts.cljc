@@ -14,7 +14,7 @@
              :grapheme/name (merge unique one)
 
              ; multiple graphemes comprise requirement
-             :req-set/requirement (merge many refval) 
+             :req-set/requirement (merge many refval)
              ; requirement is for a single grapheme
              :req-set/grapheme (merge one refval)
              ; many users may downvote this
